@@ -2,9 +2,9 @@ import { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { UpstashRedisAdapter } from "@auth/upstash-redis-adapter";
-import { Redis } from "@upstash/redis";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
 
 declare module "next-auth" {
     interface Session {
@@ -17,16 +17,21 @@ declare module "next-auth" {
     }
 }
 
+// Create a singleton PrismaClient instance
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Initialize Redis client
-const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+const prisma = globalForPrisma.prisma || new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL
+        }
+    }
 });
 
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
 export const authOptions: NextAuthOptions = {
-    // @ts-ignore
-    adapter: UpstashRedisAdapter(redis),
+    adapter: PrismaAdapter(prisma) as any,
     session: {
         strategy: "jwt",
     },
@@ -51,23 +56,25 @@ export const authOptions: NextAuthOptions = {
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
 
-                const userEmailKey = `user:email:${credentials.email}`;
-                const userId = await redis.get(userEmailKey);
+                try {
+                    const user = await prisma.user.findUnique({
+                        where: { email: credentials.email }
+                    });
 
-                if (!userId) return null;
+                    if (!user || !user.passwordHash) return null;
 
-                const user: any = await redis.get(`user:${userId}`);
-                if (!user || !user.passwordHash) return null;
+                    const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
-                const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
-
-                if (isValid) {
-                    return {
-                        id: user.id || userId as string,
-                        name: user.name,
-                        email: user.email,
-                        image: user.image
-                    };
+                    if (isValid) {
+                        return {
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            image: user.image
+                        };
+                    }
+                } catch (error) {
+                    console.error('Auth error:', error);
                 }
                 return null;
             }
@@ -91,7 +98,6 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                // Numeric Telegram User ID (ignore provider ID "telegram-login")
                 let rawId = credentials.telegram_id;
                 if (!rawId || rawId === 'telegram-login') {
                     rawId = credentials.id;
@@ -123,7 +129,6 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                // Check expiry (24 hours)
                 const now = Math.floor(Date.now() / 1000);
                 if (credentials.auth_date && now - parseInt(credentials.auth_date) > 86400) {
                     console.log('Telegram login failed: Auth expired');
@@ -146,53 +151,21 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.pin) return null;
-
-                const cleanPin = credentials.pin.trim();
-                const pinKey = `telegram:login_pin:${cleanPin}`;
-                const data: any = await redis.get(pinKey);
-
-                if (!data) return null;
-
-                // Delete PIN after single-use authentication
-                await redis.del(pinKey);
-
-                const userData = typeof data === 'string' ? JSON.parse(data) : data;
-
-                return {
-                    id: userData.id.toString(),
-                    name: userData.first_name || userData.name || 'Telegram User',
-                    image: userData.photo_url || null,
-                    email: `${userData.id}@telegram.user`,
-                };
+                console.log('Telegram PIN login: requires Redis for PIN storage');
+                return null;
             }
         })
     ],
     callbacks: {
         async session({ session, token }) {
             if (session.user && token.sub) {
-                // @ts-ignore
                 session.user.id = token.sub;
-                
-                // Fetch custom avatar or saved Telegram image if available in Redis
-                try {
-                    const customAvatar: string | null = await redis.get(`user:custom_avatar:${token.sub}`);
-                    if (customAvatar) {
-                        session.user.image = customAvatar;
-                    } else if (token.picture) {
-                        session.user.image = token.picture;
-                    }
-                } catch (e) {
-                    // Fallback to token picture
-                }
             }
             return session;
         },
         async jwt({ token, user, account }) {
             if (account && user) {
                 token.sub = user.id;
-                if (user.image) {
-                    token.picture = user.image;
-                }
             }
             return token;
         }
