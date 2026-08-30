@@ -148,9 +148,6 @@ After deployment, go to **Project Settings → Environment Variables** and add:
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `NEXT_PUBLIC_BASE_URL` | `https://your-domain.vercel.app` | Your Vercel deployment URL |
-| `NEXTAUTH_URL` | `https://your-domain.vercel.app` | Same as BASE_URL |
-| `NEXTAUTH_SECRET` | Random 32+ character string | Generate with: `openssl rand -base64 32` |
 | `DATABASE_URL` | Neon connection string | `postgresql://...` |
 | `TELEGRAM_BOT_TOKEN` | Your bot token | From @BotFather |
 | `TELEGRAM_CHAT_ID` | Your storage channel ID | `-1001234567890` |

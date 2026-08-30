@@ -5,9 +5,6 @@
   "installCommand": "npm install",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_BASE_URL": "@next_public_base_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
     "TELEGRAM_BOT_TOKEN": "@telegram_bot_token",
     "TELEGRAM_CHAT_ID": "@telegram_chat_id",
     "TELEGRAM_LOG_CHANNEL_ID": "@telegram_log_channel_id",
@@ -24,7 +21,6 @@
     "MAX_UPLOAD_SIZE_MB": "2000"
   },
   "buildEnv": {
-    "NEXTAUTH_SECRET": "@nextauth_secret",
     "DATABASE_URL": "@database_url"
   }
 }

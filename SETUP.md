@@ -79,8 +79,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_channel_id
 TELEGRAM_LOG_CHANNEL_ID=your_channel_id
 
-# App URL (Required)
-NEXT_PUBLIC_BASE_URL=https://your-domain.com
+# Telegram Bot Info
 NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username
 
 # Upstash Redis (Required for media metadata)
@@ -89,10 +88,6 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
 # Neon PostgreSQL (Required for authentication)
 DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
-
-# NextAuth (Required)
-NEXTAUTH_SECRET=your_32_char_random_secret
-NEXTAUTH_URL=https://your-domain.com
 
 # OAuth Providers
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -138,7 +133,7 @@ vercel
 
 # Set environment variables in Vercel dashboard
 vercel env add DATABASE_URL
-vercel env add NEXTAUTH_SECRET
+vercel env add TELEGRAM_BOT_TOKEN
 # ... add all other variables
 ```
 
@@ -174,8 +169,6 @@ https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://your-domain.
 | `TELEGRAM_CHAT_ID` | Yes | Storage channel ID |
 | `UPSTASH_REDIS_REST_URL` | Yes | Redis REST URL |
 | `UPSTASH_REDIS_REST_TOKEN` | Yes | Redis REST Token |
-| `NEXTAUTH_SECRET` | Yes | Random 32+ char string |
-| `NEXTAUTH_URL` | Yes | Your domain URL |
 | `GOOGLE_CLIENT_ID` | No | For Google OAuth |
 | `GOOGLE_CLIENT_SECRET` | No | For Google OAuth |
 | `GITHUB_ID` | No | For GitHub OAuth |
@@ -207,7 +200,6 @@ https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://your-domain.
 
 ## Production Checklist
 
-- [ ] Set `NEXTAUTH_URL` to production domain
 - [ ] Enable SSL on Neon database
 - [ ] Set up Telegram bot commands
 - [ ] Configure authorized domains in OAuth apps

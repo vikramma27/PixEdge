@@ -56,14 +56,17 @@
 In Vercel project settings, add:
 
 ```env
-NEXT_PUBLIC_BASE_URL=https://your-domain.vercel.app
-NEXTAUTH_SECRET=your_32_char_random_secret
-NEXTAUTH_URL=https://your-domain.vercel.app
 DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=-1001234567890
 UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
-UPLEASH_REDIS_REST_TOKEN=your_token
+UPSTASH_REDIS_REST_TOKEN=your_token
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_ID=your_github_oauth_id
+GITHUB_SECRET=your_github_oauth_secret
+TELEGRAM_API_ID=your_api_id
+TELEGRAM_API_HASH=your_api_hash
 ```
 
 ### 6. Set Telegram Webhook
